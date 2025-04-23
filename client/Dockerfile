@@ -7,16 +7,17 @@ WORKDIR /app/client
 # Install necessary build tools
 RUN apk add --no-cache python3 make g++
 
-# Copy package files
+# Copy only package files first to leverage Docker cache
 COPY client/package*.json ./
 
-# Install dependencies with legacy peer deps
-RUN npm install --legacy-peer-deps
+# Install dependencies with legacy peer deps and no audit
+RUN npm install --legacy-peer-deps --no-audit --prefer-offline
 
 # Copy source code
 COPY client/ ./
 
-# Build the app
+# Build the app with production optimization
+ENV NODE_ENV=production
 RUN npm run build
 
 # Production stage
