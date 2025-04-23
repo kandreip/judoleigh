@@ -1,0 +1,14 @@
+{
+  "name": "judoleigh",
+  "version": "1.0.0",
+  "description": "JudoLeigh application",
+  "scripts": {
+    "start": "cd client && npm start",
+    "build": "react-scripts build",
+    "install-all": "npm install && cd client && npm install"
+  },
+  "dependencies": {
+    "bootstrap-icons": "^1.11.3",
+    "recharts": "^2.15.2"
+  }
+}
