@@ -1,27 +1,38 @@
-# Use an official Node.js runtime as a parent image
-FROM node:18-alpine
+# Build stage
+FROM node:18-alpine as build
 
-# Set the working directory inside the container
+# Set the working directory
 WORKDIR /app
 
 # Install necessary build tools
 RUN apk add --no-cache python3 make g++
 
-# Copy package.json and package-lock.json to the container
+# Copy package files
 COPY package*.json ./
 
-# Install dependencies and build tools in a single layer
-RUN npm install --verbose && \
-    npm install -g serve
+# Install dependencies
+RUN npm ci
 
-# Copy the rest of the application code to the container
+# Copy source code
 COPY . .
 
-# Build the React app with verbose output
-RUN npm run build --verbose
+# Build the app
+RUN npm run build
 
-# Expose the port the app runs on
+# Production stage
+FROM node:18-alpine
+
+# Install serve globally
+RUN npm install -g serve
+
+# Copy built app from build stage
+COPY --from=build /app/build /app/build
+
+# Set working directory
+WORKDIR /app
+
+# Expose port
 EXPOSE 80
 
-# Command to run the app
+# Start the app
 CMD ["serve", "-s", "build", "-l", "80"]
