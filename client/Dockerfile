@@ -26,11 +26,20 @@ FROM node:18-alpine
 # Install serve globally
 RUN npm install -g serve
 
-# Copy built app from build stage
-COPY --from=build /app/client/build /app/build
+# Set non-root user for security reasons
+RUN adduser -D -g '' appuser
 
 # Set working directory
 WORKDIR /app
+
+# Copy built app from build stage
+COPY --from=build /app/client/build /app/build
+
+# Change ownership to the non-root user
+RUN chown -R appuser:appuser /app
+
+# Switch to the non-root user
+USER appuser
 
 # Expose port
 EXPOSE 80
