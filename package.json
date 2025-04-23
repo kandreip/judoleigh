@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "bootstrap-icons": "^1.11.3",
+    "git": "^0.1.5",
     "recharts": "^2.15.2"
   }
 }
