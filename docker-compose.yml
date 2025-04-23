@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  backend:
+    build: 
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: judoleigh-backend
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DB_HOST=mysql
+      - DB_USER=judoleigh_user
+      - DB_PASSWORD=your_password
+      - DB_NAME=judoleigh
+      - JWT_SECRET=your_jwt_secret
+    depends_on:
+      - mysql
+    networks:
+      - judoleigh-network
+
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: judoleigh-frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - judoleigh-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: judoleigh-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: judoleigh
+      MYSQL_USER: judoleigh_user
+      MYSQL_PASSWORD: your_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - judoleigh-network
+
+networks:
+  judoleigh-network:
+    driver: bridge
+
+volumes:
+  mysql_data: 
