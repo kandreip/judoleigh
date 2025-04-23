@@ -13,7 +13,6 @@ function Navigation() {
             <Nav.Link as={Link} to="/members">Members</Nav.Link>
             <Nav.Link as={Link} to="/sessions">Training Sessions</Nav.Link>
             <Nav.Link as={Link} to="/attendance">Attendance</Nav.Link>
-            <Nav.Link as={Link} to="/payments">Payments</Nav.Link>
           </Nav>
         </Navbar.Collapse>
       </Container>
