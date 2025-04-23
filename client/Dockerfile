@@ -7,20 +7,15 @@ WORKDIR /app
 # Copy package.json and package-lock.json to the container
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
-
-# Install react-scripts globally
-RUN npm install -g react-scripts
+# Install dependencies and build tools in a single layer
+RUN npm install && \
+    npm install -g serve
 
 # Copy the rest of the application code to the container
 COPY . .
 
 # Build the React app
 RUN npm run build
-
-# Install serve to run the production build
-RUN npm install -g serve
 
 # Expose the port the app runs on
 EXPOSE 80
