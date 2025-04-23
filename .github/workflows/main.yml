@@ -33,3 +33,21 @@ jobs:
       run: npm test
       env:
         CI: true 
+
+    - name: Check Node.js version
+      run: node -v
+
+    - name: Check npm version
+      run: npm -v
+
+    - name: Check git version
+      run: git --version 
+
+    - name: Check PM2 processes
+      run: pm2 list 
+
+    - name: Check PM2 logs
+      run: pm2 logs 
+
+    - name: Restart PM2 processes
+      run: pm2 restart all 
