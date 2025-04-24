@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import Axios from 'axios';
+import API_URL from './config';
 
 const AuthContext = createContext(null);
 
@@ -14,13 +15,13 @@ export const AuthProvider = ({ children }) => {
 
   const checkSession = async () => {
     try {
-      const response = await Axios.get('http://localhost:3001/api/check-session', {
+      const response = await Axios.get(`${API_URL}/check-session`, {
         withCredentials: true
       });
       
       if (response.data.valid) {
         // Get user info from the server
-        const userResponse = await Axios.get(`http://localhost:3001/api/users/${response.data.userId}`, {
+        const userResponse = await Axios.get(`${API_URL}/users/${response.data.userId}`, {
           withCredentials: true
         });
         setUser(userResponse.data);
@@ -40,7 +41,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
-      const response = await Axios.post('http://localhost:3001/api/login', {
+      const response = await Axios.post(`${API_URL}/login`, {
         username,
         password
       }, {
@@ -49,7 +50,7 @@ export const AuthProvider = ({ children }) => {
       
       if (response.data.message === 'Login successful') {
         // Get user info from the server
-        const userResponse = await Axios.get(`http://localhost:3001/api/users/${response.data.user.id}`, {
+        const userResponse = await Axios.get(`${API_URL}/users/${response.data.user.id}`, {
           withCredentials: true
         });
         
@@ -69,7 +70,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await Axios.post('http://localhost:3001/api/logout', {}, {
+      await Axios.post(`${API_URL}/logout`, {}, {
         withCredentials: true
       });
     } catch (error) {

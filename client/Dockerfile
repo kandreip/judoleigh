@@ -10,8 +10,8 @@ RUN apk add --no-cache python3 make g++
 # Copy only package files first to leverage Docker cache
 COPY client/package*.json ./
 
-# Install dependencies with legacy peer deps and no audit, using npm ci for faster installs
-RUN npm ci --legacy-peer-deps --no-audit --prefer-offline
+# Install dependencies with legacy peer deps and no audit
+RUN npm install --legacy-peer-deps --no-audit --prefer-offline
 
 # Copy source code
 COPY client/ ./

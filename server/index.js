@@ -52,10 +52,11 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-app.use(cors({
-  origin: 'http://localhost:3000',
+const corsOptions = {
+  origin: ['http://ao-tech.co.uk', 'http://217.154.63.245'],
   credentials: true
-}));
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
