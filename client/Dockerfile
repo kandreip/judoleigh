@@ -1,54 +1,32 @@
 # Build stage
-FROM node:16.20.2-slim as build
+FROM node:16.20.2-alpine
 
-# Set the working directory
+# Set working directory
 WORKDIR /app
 
-# Install only essential build tools
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    python3 \
-    make \
-    g++ \
-    && rm -rf /var/lib/apt/lists/*
-
 # Copy package files
-COPY package*.json ./
+COPY package.json package-lock.json ./
 
-# Install dependencies with specific flags
-RUN npm install --legacy-peer-deps --no-audit && \
-    npm cache clean --force
+# Install dependencies
+RUN npm install
 
 # Copy source code
 COPY . .
 
 # Build the app
-ENV NODE_ENV=production
 RUN npm run build
 
 # Production stage
-FROM node:16.20.2-slim
+FROM nginx:alpine
 
-# Set working directory
-WORKDIR /app
+# Copy built files from build stage
+COPY --from=0 /app/build /usr/share/nginx/html
 
-# Install serve
-RUN npm install -g serve
-
-# Create non-root user
-RUN useradd -m appuser
-
-# Copy built app from build stage
-COPY --from=build /app/build /app/build
-
-# Set permissions
-RUN chown -R appuser:appuser /app
-
-# Switch to non-root user
-USER appuser
+# Copy nginx configuration
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Expose port
 EXPOSE 80
 
-# Start the app
-CMD ["serve", "-s", "build", "-l", "80"]
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]
