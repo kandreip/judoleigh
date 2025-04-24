@@ -5,10 +5,10 @@ FROM node:16.20.2-alpine
 WORKDIR /app
 
 # Copy package files
-COPY package.json package-lock.json ./
+COPY package.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm install --production
 
 # Copy source code
 COPY . .
@@ -16,13 +16,13 @@ COPY . .
 # Build the app
 RUN npm run build
 
-# Production stage
+# Use nginx to serve the app
 FROM nginx:alpine
 
-# Copy built files from build stage
+# Copy built files
 COPY --from=0 /app/build /usr/share/nginx/html
 
-# Copy nginx configuration
+# Copy nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Expose port
