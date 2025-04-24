@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Axios from 'axios';
 import { Card, Form, Button, Toast, ToastContainer, Alert } from 'react-bootstrap';
 import { useAuth } from './AuthContext';
+import API_URL from './config';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -70,7 +71,7 @@ const Auth = () => {
       }
     } else {
       try {
-        const response = await Axios.post('http://localhost:3001/api/register', {
+        const response = await Axios.post(`${API_URL}/register`, {
           username,
           email,
           password

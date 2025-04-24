@@ -6,6 +6,7 @@ import Form from 'react-bootstrap/Form';
 import InputGroup from 'react-bootstrap/InputGroup';
 import Card from 'react-bootstrap/Card';
 import Axios from "axios";
+import API_URL from './config';
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
@@ -20,7 +21,7 @@ const UserList = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await Axios.get('http://localhost:3001/api/users');
+      const response = await Axios.get(`${API_URL}/users`);
       setUsers(response.data);
       setError(null);
     } catch (error) {

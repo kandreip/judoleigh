@@ -1,4 +1,4 @@
-// import { v4 as uuidv4 } from 'uuid';
+require('dotenv').config();
 const express = require("express");
 const bodyParser = require('body-parser');
 const cors = require("cors");
@@ -8,10 +8,24 @@ const uuidv4 = require('uuid').v4;
 const cookieParser = require('cookie-parser');
 
 const db = mysql.createPool({
-    host: "localhost",
-    user: "root",
-    password: "Romania1989!",
-    database: "cruddatabase",
+    host: process.env.DB_HOST || "localhost",
+    user: process.env.DB_USER || "root",
+    password: process.env.DB_PASSWORD || "Romania1989!",
+    database: process.env.DB_NAME || "cruddatabase",
+    port: process.env.DB_PORT || 3306,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+});
+
+// Test database connection
+db.getConnection((err, connection) => {
+    if (err) {
+        console.error('Error connecting to database:', err);
+        process.exit(1); // Exit the process if database connection fails
+    }
+    console.log('Successfully connected to database');
+    connection.release();
 });
 
 // Check if admin_actions table exists and create it if it doesn't
@@ -53,13 +67,16 @@ const authenticateToken = (req, res, next) => {
 };
 
 const corsOptions = {
-  origin: ['http://ao-tech.co.uk', 'http://217.154.63.245'],
-  credentials: true
+  origin: ['http://localhost:3000', 'http://ao-tech.co.uk', 'http://217.154.63.245'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 };
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.options('*', cors(corsOptions)); // Enable preflight requests for all routes
 
 
 app.post('/api/insert', (req, res) => {
