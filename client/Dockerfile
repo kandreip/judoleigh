@@ -11,7 +11,8 @@ RUN apk add --no-cache python3 make g++
 COPY client/package*.json ./
 
 # Install dependencies with legacy peer deps and no audit
-RUN npm install --legacy-peer-deps --no-audit --prefer-offline
+RUN npm config set loglevel verbose && \
+    npm install --legacy-peer-deps --no-audit --prefer-offline --verbose
 
 # Copy source code
 COPY client/ ./
