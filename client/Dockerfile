@@ -1,33 +1,33 @@
 # Build stage
-FROM node:18-alpine as build
+FROM node:16.20.2-alpine as build
 
 # Set the working directory
 WORKDIR /app/client
 
-# Install necessary build tools
-RUN apk add --no-cache python3 make g++
+# Install necessary build tools and yarn
+RUN apk add --no-cache python3 make g++ git && \
+    npm install -g yarn
 
 # Copy only package files first to leverage Docker cache
 COPY client/package*.json ./
 
-# Install dependencies with legacy peer deps and no audit
-RUN npm config set loglevel verbose && \
-    npm install --legacy-peer-deps --no-audit --prefer-offline --verbose
+# Install dependencies using yarn
+RUN yarn install --frozen-lockfile --network-timeout 100000
 
 # Copy source code
 COPY client/ ./
 
 # Build the app with production optimization
 ENV NODE_ENV=production
-RUN npm run build
+RUN yarn build
 
 # Production stage
-FROM node:18-alpine
+FROM node:16.20.2-alpine
 
 # Set working directory
 WORKDIR /app
 
-# Install serve globally only when needed
+# Install serve globally
 RUN npm install -g serve
 
 # Set non-root user for security reasons
