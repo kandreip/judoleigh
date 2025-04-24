@@ -15,8 +15,9 @@ RUN apt-get update && \
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production --no-audit
+# Install dependencies with specific flags
+RUN npm install --legacy-peer-deps --no-audit && \
+    npm cache clean --force
 
 # Copy source code
 COPY . .
