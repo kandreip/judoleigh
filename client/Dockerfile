@@ -1,45 +1,49 @@
 # Build stage
-FROM node:16.20.2-alpine as build
+FROM node:16.20.2-slim as build
 
 # Set the working directory
-WORKDIR /app/client
+WORKDIR /app
 
-# Install necessary build tools and yarn
-RUN apk add --no-cache python3 make g++ git && \
-    npm install -g yarn
+# Install only essential build tools
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy only package files first to leverage Docker cache
-COPY client/package*.json ./
+# Copy package files
+COPY package*.json ./
 
-# Install dependencies using yarn
-RUN yarn install --frozen-lockfile --network-timeout 100000
+# Install dependencies
+RUN npm ci --only=production --no-audit
 
 # Copy source code
-COPY client/ ./
+COPY . .
 
-# Build the app with production optimization
+# Build the app
 ENV NODE_ENV=production
-RUN yarn build
+RUN npm run build
 
 # Production stage
-FROM node:16.20.2-alpine
+FROM node:16.20.2-slim
 
 # Set working directory
 WORKDIR /app
 
-# Install serve globally
+# Install serve
 RUN npm install -g serve
 
-# Set non-root user for security reasons
-RUN adduser -D -g '' appuser
+# Create non-root user
+RUN useradd -m appuser
 
 # Copy built app from build stage
-COPY --from=build /app/client/build /app/build
+COPY --from=build /app/build /app/build
 
-# Change ownership to the non-root user
+# Set permissions
 RUN chown -R appuser:appuser /app
 
-# Switch to the non-root user
+# Switch to non-root user
 USER appuser
 
 # Expose port

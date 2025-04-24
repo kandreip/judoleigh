@@ -3,8 +3,8 @@ version: '3.8'
 services:
   backend:
     build: 
-      context: .
-      dockerfile: server/Dockerfile
+      context: ./server
+      dockerfile: Dockerfile
     container_name: judoleigh-backend
     restart: always
     environment:
@@ -22,8 +22,8 @@ services:
 
   frontend:
     build:
-      context: .
-      dockerfile: client/Dockerfile
+      context: ./client
+      dockerfile: Dockerfile
     container_name: judoleigh-frontend
     restart: always
     ports:
