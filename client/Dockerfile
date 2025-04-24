@@ -11,7 +11,8 @@ RUN npm install
 # Copy the rest of the code
 COPY . .
 
-# Build the app
+# Build the app with production environment
+ENV REACT_APP_API_URL=http://ao-tech.co.uk/api
 RUN npm run build
 
 # Production stage
