@@ -67,7 +67,7 @@ const authenticateToken = (req, res, next) => {
 };
 
 const corsOptions = {
-  origin: ['http://localhost:3000', 'http://ao-tech.co.uk', 'http://217.154.63.245'],
+  origin: ['http://217.154.63.245:3000', 'http://217.154.63.245', 'http://localhost:3000', 'http://ao-tech.co.uk', 'http://217.154.63.245'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
