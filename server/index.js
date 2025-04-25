@@ -8,11 +8,11 @@ const uuidv4 = require('uuid').v4;
 const cookieParser = require('cookie-parser');
 
 const db = mysql.createPool({
-    host: process.env.DB_HOST || "localhost",
+    host: process.env.DB_HOST || "cruddatabase.cl84cewi6yys.eu-west-2.rds.amazonaws.com",
     user: process.env.DB_USER || "root",
     password: process.env.DB_PASSWORD || "Romania1989!",
     database: process.env.DB_NAME || "cruddatabase",
-    port: process.env.DB_PORT || 3306,
+    port: process.env.DB_PORT || 3001,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
@@ -67,8 +67,8 @@ const authenticateToken = (req, res, next) => {
 };
 
 const corsOptions = {
-  origin: ['http://217.154.63.245:3000', 'http://217.154.63.245', 'http://localhost:3000', 'http://ao-tech.co.uk', 'http://217.154.63.245'],
   credentials: true,
+  origin: ['http://13.41.184.180:3000', 'http://13.41.184.180', 'http://localhost:3000', 'http://ao-tech.co.uk', 'http://13.41.184.180'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 };
