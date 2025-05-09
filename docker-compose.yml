@@ -14,8 +14,8 @@ services:
 
   nodejs:
     build:
-      context: .:/app
-      dockerfile: server/Dockerfile
+      context: ./server
+      dockerfile: Dockerfile
     environment:
       - DB_HOST=194.164.91.42  # ✅ change this if DB is a container
       - DB_USER=andrei
