@@ -1,9 +1,8 @@
-name: Deploy Full Stack App (Frontend + Backend)
+name: CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   deploy:
@@ -13,33 +12,23 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Setup SSH key
+    - name: Setup SSH
       run: |
         mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+        ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
-    - name: Upload project to server
+    - name: Copy files to server
       run: |
-        rsync -avz --exclude=node_modules --exclude=build . ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/home/${{ secrets.SERVER_USER }}/ao-tech
+        rsync -az --delete . ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/app
 
-    - name: Deploy backend and frontend on server
+    - name: Deploy on server via SSH
       run: |
-        ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
-          cd /home/${{ secrets.SERVER_USER }}/ao-tech
-
-          # Rebuild backend container
-          cd backend
-          docker stop backend || true && docker rm backend || true
-          docker build -t ao-tech-backend .
-          docker run -d --name backend -p 3001:3001 ao-tech-backend
-          cd ..
-
-          # Rebuild frontend container
-          cd client
-          docker stop frontend || true && docker rm frontend || true
-          docker build -t ao-tech-frontend --build-arg REACT_APP_API_URL=https://ao-tech.co.uk/api .
-          docker run -d --name frontend -p 80:80 ao-tech-frontend
-          cd ..
+        ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+          cd ~/app
+          docker stop my-app || true
+          docker rm my-app || true
+          docker build -t my-app .
+          docker run -d -p 3000:3000 --name my-app my-app
         EOF
