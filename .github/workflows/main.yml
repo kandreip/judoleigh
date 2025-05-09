@@ -1,53 +1,45 @@
-name: Node.js CI
+name: Deploy Full Stack App (Frontend + Backend)
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [14.x, 16.x]
-
     steps:
-    - uses: actions/checkout@v2
-    
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v2
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    
-    - name: Install dependencies
-      run: npm ci
-    
-    - name: Run linting
-      run: npm run lint
-    
-    - name: Run tests
-      run: npm test
-      env:
-        CI: true 
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-    - name: Check Node.js version
-      run: node -v
+    - name: Setup SSH key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
-    - name: Check npm version
-      run: npm -v
+    - name: Upload project to server
+      run: |
+        rsync -avz --exclude=node_modules --exclude=build . ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/home/${{ secrets.SERVER_USER }}/ao-tech
 
-    - name: Check git version
-      run: git --version 
+    - name: Deploy backend and frontend on server
+      run: |
+        ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+          cd /home/${{ secrets.SERVER_USER }}/ao-tech
 
-    - name: Check PM2 processes
-      run: pm2 list 
+          # Rebuild backend container
+          cd backend
+          docker stop backend || true && docker rm backend || true
+          docker build -t ao-tech-backend .
+          docker run -d --name backend -p 3001:3001 ao-tech-backend
+          cd ..
 
-    - name: Check PM2 logs
-      run: pm2 logs 
-
-    - name: Restart PM2 processes
-      run: pm2 restart all 
+          # Rebuild frontend container
+          cd client
+          docker stop frontend || true && docker rm frontend || true
+          docker build -t ao-tech-frontend --build-arg REACT_APP_API_URL=https://ao-tech.co.uk/api .
+          docker run -d --name frontend -p 80:80 ao-tech-frontend
+          cd ..
+        EOF
