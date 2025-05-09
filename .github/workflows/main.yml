@@ -15,8 +15,8 @@ jobs:
         mkdir -p ~/.ssh
         echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
+        echo "SSH_HOST: ${{ secrets.SSH_HOST }}"  # Debugging line to check the value of SSH_HOST
         ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
-
 
     - name: Copy files to server
       run: |
