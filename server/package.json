@@ -7,7 +7,7 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "start": "node server/index.js",
+    "start": "node app/server/index.js",
     "dev": "nodemon"
   },
   "dependencies": {
