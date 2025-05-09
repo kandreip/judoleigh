@@ -14,14 +14,16 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const checkSession = async () => {
+    console.log('API_URL:', API_URL);
     try {
-      const response = await Axios.get(`${API_URL}/check-session`, {
-        withCredentials: true
+      const response = await Axios.get(`${API_URL}/api/check-session`, {
+        withCredentials: true, // Include cookies
       });
+      console.log('Session check response:', response.data);
       
       if (response.data.valid) {
         // Get user info from the server
-        const userResponse = await Axios.get(`${API_URL}/users/${response.data.userId}`, {
+        const userResponse = await Axios.get(`${API_URL}/api/users/${response.data.userId}`, {
           withCredentials: true
         });
         setUser(userResponse.data);
@@ -41,7 +43,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
-      const response = await Axios.post(`${API_URL}/login`, {
+      const response = await Axios.post(`${API_URL}/api/login`, {
         username,
         password
       }, {
@@ -50,7 +52,7 @@ export const AuthProvider = ({ children }) => {
       
       if (response.data.message === 'Login successful') {
         // Get user info from the server
-        const userResponse = await Axios.get(`${API_URL}/users/${response.data.user.id}`, {
+        const userResponse = await Axios.get(`${API_URL}/api/users/${response.data.user.id}`, {
           withCredentials: true
         });
         
@@ -70,7 +72,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await Axios.post(`${API_URL}/logout`, {}, {
+      await Axios.post(`${API_URL}/api/logout`, {}, {
         withCredentials: true
       });
     } catch (error) {
@@ -93,4 +95,4 @@ export const useAuth = () => {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-}; 
+};

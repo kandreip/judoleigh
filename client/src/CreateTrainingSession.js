@@ -3,29 +3,43 @@ import { Form, Button, Card, Toast, ToastContainer, Row, Col } from 'react-boots
 import Axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
+import API_URL from './config';
 
 const CreateTrainingSession = () => {
   const [date, setDate] = useState('');
   const [selectedMembers, setSelectedMembers] = useState([]);
   const [members, setMembers] = useState([]);
+  const [filteredMembers, setFilteredMembers] = useState([]); // For search functionality
+  const [searchTerm, setSearchTerm] = useState(''); // Search input
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastTitle, setToastTitle] = useState('');
   const [toastVariant, setToastVariant] = useState('info');
   const [memberDetails, setMemberDetails] = useState({});
+  const [expandedMembers, setExpandedMembers] = useState([]); // Track expanded members
   const navigate = useNavigate();
 
   useEffect(() => {
     // Fetch all members when component mounts
-    Axios.get('http://localhost:3001/api/users')
+    Axios.get(`${API_URL}/api/users`)
       .then((response) => {
         setMembers(response.data);
+        setFilteredMembers(response.data); // Initialize filtered members
       })
       .catch((error) => {
         console.error('Error fetching members:', error);
         showMessage('Error', 'Failed to fetch members: ' + error.message, 'danger');
       });
   }, []);
+
+  useEffect(() => {
+    // Filter members based on the search term
+    const filtered = members.filter((member) =>
+      member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.type.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredMembers(filtered);
+  }, [searchTerm, members]);
 
   const showMessage = (title, message, variant = 'info') => {
     setToastTitle(title);
@@ -35,13 +49,31 @@ const CreateTrainingSession = () => {
   };
 
   const handleMemberSelection = (memberId) => {
-    setSelectedMembers(prev => {
+    setSelectedMembers((prev) => {
       if (prev.includes(memberId)) {
         // Remove member details when unselected
         const newDetails = { ...memberDetails };
         delete newDetails[memberId];
         setMemberDetails(newDetails);
-        return prev.filter(id => id !== memberId);
+        return prev.filter((id) => id !== memberId);
+      } else {
+        // Add member with default payment status "paid"
+        setMemberDetails((prev) => ({
+          ...prev,
+          [memberId]: {
+            paymentStatus: 'paid', // Default to "paid"
+            details: '', // Default empty details
+          },
+        }));
+        return [...prev, memberId];
+      }
+    });
+  };
+
+  const toggleMemberDetails = (memberId) => {
+    setExpandedMembers((prev) => {
+      if (prev.includes(memberId)) {
+        return prev.filter((id) => id !== memberId);
       } else {
         return [...prev, memberId];
       }
@@ -49,22 +81,22 @@ const CreateTrainingSession = () => {
   };
 
   const handlePaymentStatusChange = (memberId, status) => {
-    setMemberDetails(prev => ({
+    setMemberDetails((prev) => ({
       ...prev,
       [memberId]: {
         ...prev[memberId],
-        paymentStatus: status
-      }
+        paymentStatus: status,
+      },
     }));
   };
 
   const handleDetailsChange = (memberId, details) => {
-    setMemberDetails(prev => ({
+    setMemberDetails((prev) => ({
       ...prev,
       [memberId]: {
         ...prev[memberId],
-        details
-      }
+        details,
+      },
     }));
   };
 
@@ -91,7 +123,7 @@ const CreateTrainingSession = () => {
       details: memberDetails[memberId]?.details || ''
     }));
     
-    Axios.post('http://localhost:3001/api/training-sessions', {
+    Axios.post(`${API_URL}/api/training-sessions`, {
       id: sessionId,
       date: date,
       members: membersWithDetails
@@ -143,25 +175,51 @@ const CreateTrainingSession = () => {
             </Form.Group>
 
             <Form.Group className="mb-4">
+              <Form.Label>Search Members</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Search by name or type"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-4">
               <Form.Label>Select Members</Form.Label>
               <div className="member-selection-container" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                {members.map((member) => (
+                {filteredMembers.map((member) => (
                   <div key={member.id} className="mb-3 p-3 border rounded">
-                    <Form.Check
-                      type="checkbox"
-                      id={`member-${member.id}`}
-                      label={`${member.name} (${member.type})`}
-                      checked={selectedMembers.includes(member.id)}
-                      onChange={() => handleMemberSelection(member.id)}
-                      className="mb-2"
-                    />
-                    
-                    {selectedMembers.includes(member.id) && (
+                    <div className="d-flex align-items-center justify-content-between">
+                      <Form.Check
+                        type="checkbox"
+                        id={`member-${member.id}`}
+                        label={`${member.name} (${member.type})`}
+                        checked={selectedMembers.includes(member.id)}
+                        onChange={() => handleMemberSelection(member.id)}
+                        className="mb-2"
+                      />
+                      {selectedMembers.includes(member.id) && (
+                        <Button
+                          variant="link"
+                          className="ms-2 p-0"
+                          onClick={() => toggleMemberDetails(member.id)}
+                          aria-expanded={expandedMembers.includes(member.id)}
+                        >
+                          <i
+                            className={`bi ${
+                              expandedMembers.includes(member.id) ? 'bi-chevron-up' : 'bi-chevron-down'
+                            }`}
+                          ></i>
+                        </Button>
+                      )}
+                    </div>
+
+                    {expandedMembers.includes(member.id) && (
                       <div className="ms-4">
                         <Form.Group className="mb-2">
                           <Form.Label>Payment Status</Form.Label>
                           <Form.Select
-                            value={memberDetails[member.id]?.paymentStatus || 'unpaid'}
+                            value={memberDetails[member.id]?.paymentStatus || 'paid'}
                             onChange={(e) => handlePaymentStatusChange(member.id, e.target.value)}
                           >
                             <option value="paid">Paid</option>
@@ -206,4 +264,4 @@ const CreateTrainingSession = () => {
   );
 };
 
-export default CreateTrainingSession; 
+export default CreateTrainingSession;

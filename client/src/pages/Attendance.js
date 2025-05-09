@@ -22,7 +22,7 @@ function Attendance() {
 
   const fetchAttendance = async () => {
     try {
-      const response = await axios.get('/api/attendance');
+      const response = await axios.get('/attendance');
       setAttendance(response.data);
     } catch (error) {
       console.error('Error fetching attendance:', error);
@@ -31,7 +31,7 @@ function Attendance() {
 
   const fetchSessions = async () => {
     try {
-      const response = await axios.get('/api/sessions');
+      const response = await axios.get('/sessions');
       setSessions(response.data);
     } catch (error) {
       console.error('Error fetching sessions:', error);
@@ -40,7 +40,7 @@ function Attendance() {
 
   const fetchMembers = async () => {
     try {
-      const response = await axios.get('/api/members');
+      const response = await axios.get('/members');
       setMembers(response.data);
     } catch (error) {
       console.error('Error fetching members:', error);
@@ -50,7 +50,7 @@ function Attendance() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('/api/attendance', formData);
+      await axios.post('/attendance', formData);
       setShowModal(false);
       fetchAttendance();
       setFormData({

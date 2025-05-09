@@ -19,7 +19,7 @@ function Members() {
 
   const fetchMembers = async () => {
     try {
-      const response = await axios.get('/api/members');
+      const response = await axios.get('/members');
       setMembers(response.data);
     } catch (error) {
       console.error('Error fetching members:', error);
@@ -29,7 +29,7 @@ function Members() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('/api/members', formData);
+      await axios.post('/members', formData);
       setShowModal(false);
       fetchMembers();
       setFormData({

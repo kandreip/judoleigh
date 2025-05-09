@@ -19,7 +19,7 @@ function TrainingSessions() {
 
   const fetchSessions = async () => {
     try {
-      const response = await axios.get('/api/sessions');
+      const response = await axios.get('/sessions');
       setSessions(response.data);
     } catch (error) {
       console.error('Error fetching sessions:', error);
@@ -29,7 +29,7 @@ function TrainingSessions() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('/api/sessions', formData);
+      await axios.post('/sessions', formData);
       setShowModal(false);
       fetchSessions();
       setFormData({

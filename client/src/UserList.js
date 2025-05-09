@@ -21,7 +21,7 @@ const UserList = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await Axios.get(`${API_URL}/users`);
+      const response = await Axios.get(`${API_URL}/api/users`);
       setUsers(response.data);
       setError(null);
     } catch (error) {
@@ -42,7 +42,7 @@ const UserList = () => {
       <Card className="shadow-sm border-0">
         <Card.Body className="p-4">
           <div className="d-flex justify-content-between align-items-center mb-4">
-            <h2 className="mb-0">Members Listsssss</h2>
+            <h2 className="mb-0">Members List</h2>
             <Link to="/users/add" className="btn btn-primary">
               Add New Member
             </Link>

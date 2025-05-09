@@ -1,31 +1,61 @@
 require('dotenv').config();
 const express = require("express");
 const bodyParser = require('body-parser');
-const cors = require("cors");
+const cors = require('cors');
 const app = express();
 const mysql = require("mysql2");
 const uuidv4 = require('uuid').v4;
 const cookieParser = require('cookie-parser');
 
+// Enable CORS middleware with proper configuration
+const corsOptions = {
+  credentials: true, // Allow cookies and credentials
+  origin: [
+    'http://localhost:8080', // Local frontend
+    'http://ao-tech.co.uk', // Production domain
+    'https://ao-tech.co.uk',
+    'https://194.164.91.42',
+    'http://194.164.91.42' 
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed HTTP methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
+};
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // Enable preflight requests for all routes
+
+// Middleware
+app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+// Add a CORS test endpoint
+app.get('/api/test-cors', (req, res) => {
+  res.json({ message: 'CORS is working!' });
+});
+
+// Debugging log to verify CORS options
+console.log('CORS options:', corsOptions);
+
+// Database connection
 const db = mysql.createPool({
-    host: process.env.DB_HOST || "cruddatabase.cl84cewi6yys.eu-west-2.rds.amazonaws.com",
-    user: process.env.DB_USER || "root",
-    password: process.env.DB_PASSWORD || "Romania1989!",
-    database: process.env.DB_NAME || "cruddatabase",
-    port: process.env.DB_PORT || 3001,
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
+  host: process.env.DB_HOST || "194.164.91.42",
+  user: process.env.DB_USER || "andrei",
+  password: process.env.DB_PASSWORD || "Romania1989!",
+  database: process.env.DB_NAME || "cruddatabase",
+  port: process.env.DB_PORT || 3307,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
 // Test database connection
 db.getConnection((err, connection) => {
-    if (err) {
-        console.error('Error connecting to database:', err);
-        process.exit(1); // Exit the process if database connection fails
-    }
-    console.log('Successfully connected to database');
-    connection.release();
+  if (err) {
+    console.error('Error connecting to database:', err);
+    process.exit(1); // Exit the process if database connection fails
+  }
+  console.log('Successfully connected to database');
+  connection.release();
 });
 
 // Check if admin_actions table exists and create it if it doesn't
@@ -44,6 +74,64 @@ db.query(`
     console.error('Error creating admin_actions table:', err);
   } else {
     console.log('admin_actions table created or already exists');
+  }
+});
+
+// Check if training_sessions table exists and create it if it doesn't
+db.query(`
+  CREATE TABLE IF NOT EXISTS training_sessions (
+    id VARCHAR(36) PRIMARY KEY,
+    date DATE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+`, (err) => {
+  if (err) {
+    console.error('Error creating training_sessions table:', err);
+  } else {
+    console.log('training_sessions table created or already exists');
+  }
+});
+
+// Drop old foreign key constraint if it exists
+db.query(`
+  SELECT CONSTRAINT_NAME 
+  FROM information_schema.TABLE_CONSTRAINTS 
+  WHERE CONSTRAINT_SCHEMA = 'cruddatabase' 
+  AND TABLE_NAME = 'training_session_members' 
+  AND CONSTRAINT_NAME = 'training_session_members_ibfk_1'
+`, (err, results) => {
+  if (err) {
+    console.error('Error checking for old constraint:', err);
+  } else if (results.length > 0) {
+    db.query(`
+      ALTER TABLE training_session_members 
+      DROP FOREIGN KEY training_session_members_ibfk_1
+    `, (err) => {
+      if (err) {
+        console.error('Error dropping old constraint:', err);
+      } else {
+        console.log('Old foreign key constraint dropped');
+      }
+    });
+  }
+});
+
+// Check if training_session_members table exists and create it if it doesn't
+db.query(`
+  CREATE TABLE IF NOT EXISTS training_session_members (
+    session_id VARCHAR(36),
+    member_id INT,
+    payment_status ENUM('paid', 'unpaid') DEFAULT 'unpaid',
+    details TEXT,
+    PRIMARY KEY (session_id, member_id),
+    FOREIGN KEY (session_id) REFERENCES training_sessions(id) ON DELETE CASCADE,
+    FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
+  )
+`, (err) => {
+  if (err) {
+    console.error('Error creating training_session_members table:', err);
+  } else {
+    console.log('training_session_members table created or already existsss');
   }
 });
 
@@ -66,18 +154,9 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-const corsOptions = {
-  credentials: true,
-  origin: ['http://13.41.184.180:3000', 'http://13.41.184.180', 'http://localhost:3000', 'http://ao-tech.co.uk', 'http://13.41.184.180'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-};
-app.use(cors(corsOptions));
-app.use(express.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cookieParser());
-app.options('*', cors(corsOptions)); // Enable preflight requests for all routes
-
+app.get('/api/check-session', (req, res) => {
+  res.status(200).json({ message: 'Session is valid' });
+});
 
 app.post('/api/insert', (req, res) => {
   const name = req.body.name;
@@ -219,6 +298,73 @@ app.post('/api/register', validateRegistration, (req, res) => {
           res.status(500).send("Failed to register user");
         } else {
           res.status(200).send("User registered successfully");
+        }
+      });
+    }
+  });
+});
+
+// Add a fallback route for `/login` to redirect to `/login`
+app.post('/api/login', (req, res) => {
+  res.redirect(307, '/api/login'); // Redirect with the same HTTP method (POST)
+});
+
+// Existing `/login` endpoint
+app.post('/api/login', (req, res) => {
+  const { username, password } = req.body;
+
+  // Check if username exists
+  const checkUsername = "SELECT * FROM users WHERE username = ?";
+  db.query(checkUsername, [username], (err, results) => {
+    if (err) {
+      res.status(500).send("Database error");
+    } else if (results.length === 0) {
+      res.status(401).send("Username not found");
+    } else {
+      // Check if user is approved
+      if (!results[0].is_approved) {
+        return res.status(403).send("Account pending approval. Please contact an administrator.");
+      }
+
+      // Check password
+      const sqlSelect = "SELECT * FROM users WHERE username = ? AND password = ?";
+      db.query(sqlSelect, [username, password], (err, results) => {
+        if (err) {
+          res.status(500).send("Database error");
+        } else if (results.length === 0) {
+          res.status(401).send("Incorrect password");
+        } else {
+          const userId = results[0].id;
+          const token = uuidv4();
+          const expiresAt = new Date();
+          expiresAt.setHours(expiresAt.getHours() + 24); // Token expires in 24 hours
+
+          // Store session in database
+          const sqlInsert = "INSERT INTO sessions (id, user_id, token, expires_at) VALUES (?, ?, ?, ?)";
+          db.query(sqlInsert, [uuidv4(), userId, token, expiresAt], (err) => {
+            if (err) {
+              res.status(500).send("Failed to create session");
+            } else {
+              // Set HTTP-only cookie
+              res.cookie('session_token', token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                expires: expiresAt,
+                path: '/'
+              });
+
+              res.status(200).json({ 
+                message: "Login successful",
+                user: {
+                  id: results[0].id,
+                  username: results[0].username,
+                  email: results[0].email,
+                  is_admin: results[0].is_admin
+                }
+              });
+            }
+          });
         }
       });
     }
@@ -1058,7 +1204,84 @@ app.get('/api/admin/actions', authenticateToken, (req, res) => {
   });
 });
 
-app.listen(3001, () => {
+// Update all tables to use UUID for id fields with proper constraints
+// db.query(`
+//   -- Update members table
+//   ALTER TABLE members MODIFY COLUMN id VARCHAR(36) NOT NULL;
+//   ALTER TABLE members DROP PRIMARY KEY;
+//   ALTER TABLE members ADD PRIMARY KEY (id);
+
+//   -- Update users table
+//   ALTER TABLE users MODIFY COLUMN id VARCHAR(36) NOT NULL;
+//   ALTER TABLE users DROP PRIMARY KEY;
+//   ALTER TABLE users ADD PRIMARY KEY (id);
+
+//   -- Update sessions table
+//   ALTER TABLE sessions MODIFY COLUMN id VARCHAR(36) NOT NULL;
+//   ALTER TABLE sessions DROP PRIMARY KEY;
+//   ALTER TABLE sessions ADD PRIMARY KEY (id);
+
+//   -- Update training_sessions table
+//   ALTER TABLE training_sessions MODIFY COLUMN id VARCHAR(36) NOT NULL;
+//   ALTER TABLE training_sessions DROP PRIMARY KEY;
+//   ALTER TABLE training_sessions ADD PRIMARY KEY (id);
+
+//   -- Update training_session_members table
+//   ALTER TABLE training_session_members MODIFY COLUMN session_id VARCHAR(36) NOT NULL;
+//   ALTER TABLE training_session_members MODIFY COLUMN member_id VARCHAR(36) NOT NULL;
+//   ALTER TABLE training_session_members DROP PRIMARY KEY;
+//   ALTER TABLE training_session_members ADD PRIMARY KEY (session_id, member_id);
+
+//   -- Update admin_actions table
+//   ALTER TABLE admin_actions MODIFY COLUMN id VARCHAR(36) NOT NULL;
+//   ALTER TABLE admin_actions MODIFY COLUMN admin_id VARCHAR(36) NOT NULL;
+//   ALTER TABLE admin_actions MODIFY COLUMN user_id VARCHAR(36) NOT NULL;
+//   ALTER TABLE admin_actions DROP PRIMARY KEY;
+//   ALTER TABLE admin_actions ADD PRIMARY KEY (id);
+// `, (err) => {
+//   if (err) {
+//     console.error('Error updating tables to use UUID:', err);
+//   } else {
+//     console.log('All tables updated to use UUID for id fields with proper constraints');
+//   }
+// });
+
+// db.query(`
+//   ALTER TABLE members MODIFY COLUMN id VARCHAR(36) NOT NULL;
+// `, (err) => {
+//   if (err) {
+//     console.error('Error modifying members table:', err);
+//   } else {
+//     console.log('Members table updated successfully');
+//   }
+// });
+
+// db.query(`
+//   ALTER TABLE members DROP PRIMARY KEY;
+// `, (err) => {
+//   if (err) {
+//     console.error('Error dropping primary key from members table:', err);
+//   } else {
+//     console.log('Primary key dropped from members table');
+//   }
+// });
+
+// db.query(`
+//   ALTER TABLE members ADD PRIMARY KEY (id);
+// `, (err) => {
+//   if (err) {
+//     console.error('Error adding primary key to members table:', err);
+//   } else {
+//     console.log('Primary key added to members table');
+//   }
+// });
+
+// Add a route for the root URL
+app.get('/api/', (req, res) => {
+  res.send('Welcome to the Judoleigh API!');
+});
+
+app.listen(3001, '0.0.0.0', () => {
   console.log("Server is running on port 3001");
 }).on('error', (err) => {
   if (err.code === 'EADDRINUSE') {
@@ -1067,3 +1290,5 @@ app.listen(3001, () => {
     console.error("Server error:", err);
   }
 });
+
+

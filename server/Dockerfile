@@ -1,13 +1,20 @@
-FROM node:18-alpine
+# Use node image
+FROM node:latest
 
-WORKDIR /app
+# Set working directory
+WORKDIR /usr/src/app
 
+# Copy package.json and package-lock.json
 COPY package*.json ./
 
+# Install dependencies
 RUN npm install
 
+# Copy application code
 COPY . .
 
-EXPOSE 3001
+# Expose port
+EXPOSE 3000
 
-CMD ["npm", "start"] 
+# Start the application
+CMD ["node", "index.js"]

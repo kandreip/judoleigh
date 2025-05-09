@@ -3,6 +3,7 @@ import { Card, Table, Button, Modal, Form, Toast, ToastContainer, InputGroup } f
 import Axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import API_URL from './config';
 
 const TrainingSessionsList = () => {
   const [sessions, setSessions] = useState([]);
@@ -31,7 +32,7 @@ const TrainingSessionsList = () => {
   const fetchSessions = async () => {
     try {
       setLoading(true);
-      const response = await Axios.get('http://localhost:3001/api/training-sessions');
+      const response = await Axios.get(`${API_URL}/api/training-sessions`);
       console.log('Fetched sessions:', response.data);
       setSessions(response.data);
     } catch (error) {
@@ -44,7 +45,7 @@ const TrainingSessionsList = () => {
 
   const fetchAllMembers = async () => {
     try {
-      const response = await Axios.get('http://localhost:3001/api/users');
+      const response = await Axios.get(`${API_URL}/api/users`);
       setAllMembers(response.data);
     } catch (error) {
       console.error('Error fetching members:', error);
@@ -70,7 +71,7 @@ const TrainingSessionsList = () => {
       }
 
       const sessionId = encodeURIComponent(session.id);
-      const response = await Axios.get(`http://localhost:3001/api/training-sessions/${sessionId}`);
+      const response = await Axios.get(`${API_URL}/api/training-sessions/${sessionId}`);
       console.log('Fetched session details:', response.data);
       
       if (response.data) {
@@ -108,7 +109,7 @@ const TrainingSessionsList = () => {
 
   const confirmDelete = async () => {
     try {
-      await Axios.delete(`http://localhost:3001/api/training-sessions/${sessionToDelete}`);
+      await Axios.delete(`${API_URL}/api/training-sessions/${sessionToDelete}`);
       setShowConfirmModal(false);
       setSessionToDelete(null);
       setSuccessMessage('Session deleted successfully!');
@@ -129,7 +130,7 @@ const TrainingSessionsList = () => {
 
   const handleSave = async () => {
     try {
-      await Axios.put(`http://localhost:3001/api/training-sessions/${selectedSession.id}`, {
+      await Axios.put(`${API_URL}/api/training-sessions/${selectedSession.id}`, {
         date: selectedSession.date,
         members: selectedSession.members
       });

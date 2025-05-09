@@ -16,6 +16,7 @@ import Nav from 'react-bootstrap/Nav';
 import Auth from './Auth';
 import { AuthProvider, useAuth } from './AuthContext';
 import AdminUsers from './AdminUsers';
+import TestAnimation from './pages/TestAnimation';
 
 // Navigation component
 const Navigation = () => {
@@ -128,6 +129,7 @@ function App() {
               <Route path="/training-sessions" element={<PrivateRoute><TrainingSessionsList /></PrivateRoute>} />
               <Route path="/training-sessions/create" element={<PrivateRoute><CreateTrainingSession /></PrivateRoute>} />
               <Route path="/admin/users" element={<PrivateRoute><AdminUsers /></PrivateRoute>} />
+              <Route path="/test-animation" element={<TestAnimation />} />
             </Routes>
           </Container>
         </div>

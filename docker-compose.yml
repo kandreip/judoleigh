@@ -1,55 +1,35 @@
 version: '3.8'
 
 services:
-  backend:
-    build: 
-      context: ./server
-      dockerfile: Dockerfile
-    container_name: judoleigh-backend
-    restart: always
-    environment:
-      - NODE_ENV=production
-      - PORT=3001
-      - DB_HOST=mysql
-      - DB_USER=judoleigh_user
-      - DB_PASSWORD=your_password
-      - DB_NAME=judoleigh
-      - JWT_SECRET=your_jwt_secret
-    depends_on:
-      - mysql
-    networks:
-      - judoleigh-network
-
-  frontend:
+  react:
     build:
       context: ./client
       dockerfile: Dockerfile
-    container_name: judoleigh-frontend
-    restart: always
+      args:
+        REACT_APP_API_URL: ao-tech.co.uk/api
     ports:
-      - "3000:80"
-    depends_on:
-      - backend
+      - "8080:80"
     networks:
-      - judoleigh-network
+      - app-network
 
-  mysql:
-    image: mysql:8.0
-    container_name: judoleigh-mysql
-    restart: always
+  nodejs:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
     environment:
-      MYSQL_ROOT_PASSWORD: root_password
-      MYSQL_DATABASE: judoleigh
-      MYSQL_USER: judoleigh_user
-      MYSQL_PASSWORD: your_password
-    volumes:
-      - mysql_data:/var/lib/mysql
+      - DB_HOST=194.164.91.42  # ✅ change this if DB is a container
+      - DB_USER=andrei
+      - DB_PASSWORD=Romania1989!
+      - DB_NAME=cruddatabase
+      - DB_PORT=3307
+    ports:
+      - "3001:3001"
     networks:
-      - judoleigh-network
+      - app-network
+    volumes:
+      - ./server:/usr/src/app
+    command: sh -c "node index.js"
 
 networks:
-  judoleigh-network:
+  app-network:
     driver: bridge
-
-volumes:
-  mysql_data: 

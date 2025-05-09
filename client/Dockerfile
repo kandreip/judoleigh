@@ -1,31 +1,29 @@
-# Build stage
-FROM node:16.20.2-alpine AS builder
+# Step 1: Build the React app
+FROM node:16 AS build
 
-# Set working directory
 WORKDIR /app
 
-# Install dependencies first (better caching)
+# Copy dependencies and install
 COPY package.json package-lock.json ./
 RUN npm install
 
-# Copy the rest of the code
-COPY . .
-
-# Build the app with production environment
-ENV REACT_APP_API_URL=http://ao-tech.co.uk/api
+# Copy app source and build it
+COPY . ./
+ARG REACT_APP_API_URL
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
 RUN npm run build
 
-# Production stage
-FROM nginx:stable-alpine
+# Step 2: Serve with Nginx
+FROM nginx:alpine
 
-# Copy built assets from builder
-COPY --from=builder /app/build /usr/share/nginx/html
+# Copy built React app to Nginx default public folder
+COPY --from=build /app/build /usr/share/nginx/html
 
-# Copy nginx configuration
+# Copy custom Nginx config for SPA support
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Expose port 80
+# Expose port
 EXPOSE 80
 
-# Start nginx
+# Start Nginx
 CMD ["nginx", "-g", "daemon off;"]
