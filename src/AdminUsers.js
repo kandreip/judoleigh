@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Axios from 'axios';
 import { Table, Button, Alert, Spinner, Modal } from 'react-bootstrap';
+import API_URL from './config';
 
 const AdminUsers = () => {
   const [users, setUsers] = useState([]);
@@ -19,7 +20,7 @@ const AdminUsers = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await Axios.get('http://localhost:3001/api/admin/users', {
+      const response = await Axios.get(`${API_URL}/api/admin/users`, {
         withCredentials: true
       });
       setUsers(response.data);
@@ -39,7 +40,7 @@ const AdminUsers = () => {
 
   const handleApprove = async (userId) => {
     try {
-      await Axios.put(`http://localhost:3001/api/admin/users/${userId}/approve`, {}, {
+      await Axios.put(`${API_URL}/api/admin/users/${userId}/approve`, {}, {
         withCredentials: true
       });
       setSuccessMessage('User approved successfully');
@@ -53,7 +54,7 @@ const AdminUsers = () => {
 
   const handleMakeAdmin = async (userId) => {
     try {
-      await Axios.put(`http://localhost:3001/api/admin/users/${userId}/make-admin`, {}, {
+      await Axios.put(`${API_URL}/api/admin/users/${userId}/make-admin`, {}, {
         withCredentials: true
       });
       setSuccessMessage('User is now an admin');
@@ -67,7 +68,7 @@ const AdminUsers = () => {
 
   const handleDelete = async (userId) => {
     try {
-      await Axios.delete(`http://localhost:3001/api/admin/users/${userId}`, {
+      await Axios.delete(`${API_URL}/api/admin/users/${userId}`, {
         withCredentials: true
       });
       setSuccessMessage('User deleted successfully');

@@ -9,6 +9,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Card from 'react-bootstrap/Card';
 import Toast from 'react-bootstrap/Toast';
 import ToastContainer from 'react-bootstrap/ToastContainer';
+import API_URL from './config';
 
 const history = createBrowserHistory(); // Create a browser history instance
 
@@ -35,7 +36,7 @@ const AddUser = () => {
     
     showDatabaseMessage("Database Access", "Attempting to add new member to database...");
     
-    Axios.post('http://localhost:3001/api/insert', { id: uuid, name: name, age: age, type: type })
+    Axios.post(`${API_URL}/api/insert`, { id: uuid, name: name, age: age, type: type })
       .then(() => {
         setName("");
         setAge("");

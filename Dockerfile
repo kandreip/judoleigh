@@ -1,31 +1,29 @@
-FROM node:18-alpine as build
+# Step 1: Build the React app
+FROM node:16 AS build
 
 WORKDIR /app
 
-# Copy package files first to leverage Docker cache
+# Copy dependencies and install
 COPY package.json package-lock.json ./
+RUN npm install
 
-# Install dependencies
-RUN npm ci
-
-# Copy the rest of the application
-COPY . .
-
-# Build the application
+# Copy app source and build it
+COPY . ./
+ARG REACT_APP_API_URL
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
 RUN npm run build
 
-# Production stage
+# Step 2: Serve with Nginx
 FROM nginx:alpine
 
-# Copy built assets from build stage
+# Copy built React app to Nginx default public folder
 COPY --from=build /app/build /usr/share/nginx/html
 
-# Copy nginx configuration
+# Copy custom Nginx config for SPA support
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Create necessary directories
-RUN mkdir -p /etc/nginx/conf.d
-
+# Expose port
 EXPOSE 80
 
-CMD ["nginx", "-g", "daemon off;"] 
+# Start Nginx
+CMD ["nginx", "-g", "daemon off;"]

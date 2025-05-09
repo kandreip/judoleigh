@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import Axios from 'axios';
+import API_URL from './config';
 
 const AuthContext = createContext(null);
 
@@ -13,14 +14,16 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const checkSession = async () => {
+    console.log('API_URL:', API_URL);
     try {
-      const response = await Axios.get('http://localhost:3001/api/check-session', {
-        withCredentials: true
+      const response = await Axios.get(`${API_URL}/api/check-session`, {
+        withCredentials: true, // Include cookies
       });
+      console.log('Session check response:', response.data);
       
       if (response.data.valid) {
         // Get user info from the server
-        const userResponse = await Axios.get(`http://localhost:3001/api/users/${response.data.userId}`, {
+        const userResponse = await Axios.get(`${API_URL}/api/users/${response.data.userId}`, {
           withCredentials: true
         });
         setUser(userResponse.data);
@@ -40,7 +43,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
-      const response = await Axios.post('http://localhost:3001/api/login', {
+      const response = await Axios.post(`${API_URL}/api/login`, {
         username,
         password
       }, {
@@ -49,7 +52,7 @@ export const AuthProvider = ({ children }) => {
       
       if (response.data.message === 'Login successful') {
         // Get user info from the server
-        const userResponse = await Axios.get(`http://localhost:3001/api/users/${response.data.user.id}`, {
+        const userResponse = await Axios.get(`${API_URL}/api/users/${response.data.user.id}`, {
           withCredentials: true
         });
         
@@ -69,7 +72,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await Axios.post('http://localhost:3001/api/logout', {}, {
+      await Axios.post(`${API_URL}/api/logout`, {}, {
         withCredentials: true
       });
     } catch (error) {
@@ -92,4 +95,4 @@ export const useAuth = () => {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-}; 
+};

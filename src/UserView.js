@@ -5,6 +5,7 @@ import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import API_URL from './config';
 
 const UserView = () => {
   const { userId } = useParams();
@@ -63,7 +64,7 @@ const UserView = () => {
   const fetchUserDetails = async () => {
     try {
       setLoading(true);
-      const response = await Axios.get(`http://localhost:3001/api/users/${userId}`);
+      const response = await Axios.get(`${API_URL}/api/users/${userId}`);
       setUserDetails(response.data);
       setError(null);
     } catch (error) {
@@ -76,7 +77,7 @@ const UserView = () => {
 
   const fetchTrainingSessions = async () => {
     try {
-      const response = await Axios.get(`http://localhost:3001/api/members/${userId}/training-sessions?period=${timePeriod}`);
+      const response = await Axios.get(`${API_URL}/api/members/${userId}/training-sessions?period=${timePeriod}`);
       setTrainingSessions(response.data);
     } catch (error) {
       console.error('Error fetching training sessions:', error);
@@ -101,7 +102,7 @@ const UserView = () => {
 
   const handleUpdate = async () => {
     try {
-      await Axios.put(`http://localhost:3001/api/update/${userId}`, { 
+      await Axios.put(`${API_URL}/api/update/${userId}`, { 
         name: editUserName, 
         age: editUserAge, 
         type: editUserType 
@@ -130,7 +131,7 @@ const UserView = () => {
 
   const confirmDelete = async () => {
     try {
-      await Axios.delete(`http://localhost:3001/api/delete/${userId}`);
+      await Axios.delete(`${API_URL}/api/delete/${userId}`);
       setShowConfirmModal(false);
       navigate('/users');
     } catch (error) {

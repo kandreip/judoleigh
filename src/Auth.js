@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import Axios from 'axios';
 import { Card, Form, Button, Toast, ToastContainer, Alert } from 'react-bootstrap';
 import { useAuth } from './AuthContext';
+import API_URL from './config';
+import LoadingAnimation from './components/LoadingAnimation';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -14,6 +16,7 @@ const Auth = () => {
   const [toastTitle, setToastTitle] = useState('');
   const [toastVariant, setToastVariant] = useState('info');
   const [validationErrors, setValidationErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
@@ -53,42 +56,65 @@ const Auth = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setValidationErrors({});
+    setIsLoading(true);
 
     if (!validateForm()) {
+      setIsLoading(false);
       return;
     }
     
     if (isLogin) {
-      const success = await login(username, password);
-      if (success) {
-        showMessage('Success', 'Login successful!', 'success');
-        setTimeout(() => {
-          navigate('/users');
-        }, 2000);
-      } else {
-        showMessage('Error', 'Login failed. Please check your credentials.', 'danger');
+      try {
+        const startTime = Date.now();
+        const success = await login(username, password);
+        const elapsedTime = Date.now() - startTime;
+        const remainingTime = Math.max(0, 2000 - elapsedTime); // Ensure at least 2 seconds total
+
+        if (success) {
+          showMessage('Success', 'Login successful!', 'success');
+          setTimeout(() => {
+            navigate('/users');
+          }, remainingTime);
+        } else {
+          showMessage('Error', 'Login failed. Please check your credentials.', 'danger');
+          setIsLoading(false);
+        }
+      } catch (error) {
+        showMessage('Error', error.message, 'danger');
+        setIsLoading(false);
       }
     } else {
       try {
-        const response = await Axios.post('http://localhost:3001/api/register', {
+        const startTime = Date.now();
+        const response = await Axios.post(`${API_URL}/api/register`, {
           username,
           email,
           password
         });
+        const elapsedTime = Date.now() - startTime;
+        const remainingTime = Math.max(0, 2000 - elapsedTime); // Ensure at least 2 seconds total
         
         if (response.data === 'User registered successfully') {
           showMessage('Success', 'Registration successful! Please wait for admin approval.', 'success');
-          setIsLogin(true);
-          setEmail('');
-          setPassword('');
-          setUsername('');
+          setTimeout(() => {
+            setIsLogin(true);
+            setEmail('');
+            setPassword('');
+            setUsername('');
+            setIsLoading(false);
+          }, remainingTime);
         }
       } catch (error) {
         const errorMessage = error.response?.data || 'Registration failed';
         showMessage('Error', errorMessage, 'danger');
+        setIsLoading(false);
       }
     }
   };
+
+  if (isLoading) {
+    return <LoadingAnimation />;
+  }
 
   return (
     <div className="container">
@@ -113,7 +139,7 @@ const Auth = () => {
             <h2 className="text-primary">{isLogin ? 'Login' : 'Register'}</h2>
             <p className="text-muted">Welcome to Leigh Judo Club Management System</p>
           </div>
-          
+
           <Form onSubmit={handleSubmit}>
             <Form.Group className="mb-3">
               <Form.Label className="fw-bold">Username</Form.Label>
@@ -182,6 +208,7 @@ const Auth = () => {
                 type="submit" 
                 size="lg"
                 className="rounded-pill"
+                disabled={isLoading}
               >
                 {isLogin ? 'Login' : 'Register'}
               </Button>

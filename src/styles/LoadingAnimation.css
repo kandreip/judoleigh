@@ -1,0 +1,60 @@
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: #6a0dad; /* Deep purple background */
+}
+
+.rolling-kid {
+  position: relative;
+  width: 400px;
+  height: 100px;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.kid {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  left: 0;
+  animation: roll 1.5s infinite linear;
+}
+
+.loader-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: brightness(0) invert(1); /* Make the image white */
+}
+
+/* Animation keyframes */
+@keyframes roll {
+  0% {
+    transform: translateX(0) rotate(0deg);
+  }
+  100% {
+    transform: translateX(340px) rotate(360deg);
+  }
+}
+
+.loading-text {
+  font-size: 24px;
+  font-weight: bold;
+  color: white; /* White text for better contrast */
+  animation: pulse 1s infinite;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); /* Add glow effect */
+}
+
+@keyframes pulse {
+  0%, 100% { 
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% { 
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+} 
