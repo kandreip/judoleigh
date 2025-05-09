@@ -14,7 +14,7 @@ services:
 
   nodejs:
     build:
-      context: .
+      context: .:/app
       dockerfile: server/Dockerfile
     environment:
       - DB_HOST=194.164.91.42  # ✅ change this if DB is a container
