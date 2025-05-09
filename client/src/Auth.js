@@ -137,7 +137,7 @@ const Auth = () => {
         <Card.Body className="p-4">
           <div className="text-center mb-4">
             <h2 className="text-primary">{isLogin ? 'Login' : 'Register'}</h2>
-            <p className="text-muted">Welcome to Leigh Judo Club Management System!!!!!</p>
+            <p className="text-muted">Welcome to Leigh Judo Club Management System!!!</p>
           </div>
 
           <Form onSubmit={handleSubmit}>
