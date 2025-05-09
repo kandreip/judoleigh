@@ -27,8 +27,6 @@ jobs:
       run: |
         ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
           cd ~/app
-          docker stop my-app || true
-          docker rm my-app || true
-          docker build -t my-app .
-          docker run -d -p 3000:3000 --name my-app my-app
+          docker-compose down
+          docker-compose up -d --build
         EOF
