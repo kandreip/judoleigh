@@ -22,7 +22,7 @@ jobs:
 
     - name: Copy files to server
       run: |
-        rsync -az --delete -e "ssh -i ~/.ssh/id_rsa" . ***@***:/home/***/app
+        rsync -az --delete -e "ssh -i ~/.ssh/id_rsa" . ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/home/${{ secrets.SERVER_USER }}/app
 
     - name: Deploy on server via SSH
       run: |
