@@ -20,8 +20,8 @@ jobs:
 
     - name: Copy files to server
       run: |
-        rsync -az --delete . ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/home/${{ secrets.SERVER_USER }}/app
-
+        rsync -az --delete -e "ssh -v" . ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/home/${{ secrets.SERVER_USER }}/app
+    
     - name: Deploy on server via SSH
       run: |
         ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
