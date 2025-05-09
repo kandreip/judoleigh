@@ -1,20 +1,9 @@
-# Use node image
-FROM node:latest
+FROM node:18
 
-# Set working directory
-WORKDIR /usr/src/app
-
-# Copy package.json and package-lock.json
+WORKDIR /app
 COPY package*.json ./
-
-# Install dependencies
 RUN npm install
-
-# Copy application code
 COPY . .
 
-# Expose port
-EXPOSE 3000
-
-# Start the application
-CMD ["node", "index.js"]
+EXPOSE 3001
+CMD ["npm", "start"]
